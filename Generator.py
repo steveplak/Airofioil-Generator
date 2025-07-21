@@ -2,6 +2,8 @@ import tkinter as tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
+import numpy as np
+
 
 
 def main():
@@ -39,7 +41,6 @@ def InitialiseWindow():
     fig = Figure(figsize=(6, 3), dpi=100)
     ax  = fig.add_subplot(111)
     ax.set_title("Airfoil will appear here")
-    #ax.set_xlim(0, 1.5); ax.set_ylim(-0.75, 0.75)
     ax.grid(False)
 
     canvas = FigureCanvasTkAgg(fig, master=root)
@@ -48,13 +49,40 @@ def InitialiseWindow():
     root.mainloop() # keeps window open and refreshed
 
 def GenerateAerofoil(naca_code: str):
+    
+    naca_code_strip = naca_code.strip()
+    if len(naca_code_strip) != 4 or not naca_code_strip.isdigit():
 
-    ax.clear()
-    ax.set_title(f"NACA {naca_code} ")
+        tk.messagebox.showerror("Invalid NACA code","Please enter exactly 4 numeric digits, e.g. 2412")
+        return
+    
+    else:
+        
+        m = int(naca_code_strip[0])/100
+        p = int(naca_code_strip[1])/10
+        t = int(naca_code_strip[2:4])/100
+        print(m,p,t)
+
+        x = np.linspace(0, 1, 100)
+        yc = np.where( x < p , m/p**2*(2*p*x - x**2),  m/(1-p)**2*((1-2*p) + 2*p*x - x**2))
+        dyc_dx = np.where(  x < p, (2*m / p**2) * (p - x), (2*m / (1-p)**2) * (p - x))
+        
+        yt = (t/0.2)*(0.2969*np.sqrt(x) - 0.1260*x - 0.3516*x**2 + 0.2843*x**3 - 0.1015*x**4)
+    
+        X_U = x - yt * np.sin(np.arctan(dyc_dx)) ; X_L = x + yt * np.sin(np.arctan(dyc_dx))  
+        Y_U = yc + yt * np.cos(np.arctan(dyc_dx)) ; Y_L = yc - yt * np.cos(np.arctan(dyc_dx))
+
+        ax.clear()
+        ax.set_title(f"NACA {naca_code} ")
+        ax.set_xlim(-0.5, 1.5); ax.set_ylim(-0.5, 0.5)
+
+        ax.plot(x, yc)
+        ax.plot(X_U, Y_U, 'b-')
+        ax.plot(X_L, Y_L, 'b-')
+        
+        canvas.draw()
     
     
-    
-    canvas.draw()
     
 
 
