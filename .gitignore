@@ -1,0 +1,9 @@
+# Ignore Python bytecode cache directories
+__pycache__/
+
+# Ignore all .pyc and .pyo files
+*.pyc
+*.pyo
+
+# (Optional) Ignore editor swap files
+*~
